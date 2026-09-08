@@ -18,7 +18,11 @@ def set_auth_cookie(response: Response, token: str) -> None:
         token,
         httponly=True,
         secure=settings.cookie_secure,
-        samesite="lax",
+        # Frontend and API live on different domains in production (Netlify + Render/etc.),
+        # so the cookie must be SameSite=None to be sent on those cross-site requests.
+        # Browsers only accept SameSite=None alongside Secure, hence the pairing with
+        # cookie_secure. Local dev stays "lax" since it's same-site http://localhost.
+        samesite="none" if settings.cookie_secure else "lax",
         max_age=settings.access_token_expire_minutes * 60,
     )
 
@@ -55,7 +59,13 @@ async def login(payload: UserLogin, response: Response, db: DbSession) -> AuthRe
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(response: Response) -> None:
-    response.delete_cookie("access_token")
+    settings = get_settings()
+    response.delete_cookie(
+        "access_token",
+        httponly=True,
+        secure=settings.cookie_secure,
+        samesite="none" if settings.cookie_secure else "lax",
+    )
 
 
 @router.get("/me", response_model=UserRead)
