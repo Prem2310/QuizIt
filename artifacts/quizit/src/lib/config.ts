@@ -9,7 +9,10 @@ export const API_BASE_URL = RAW_BASE.replace(/\/+$/, "") || "http://localhost:80
 /** Derive the websocket origin from the API base so we never hardcode localhost. */
 export function wsUrl(path: string): string {
   const base = API_BASE_URL.replace(/^http/, "ws");
-  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+  const token = typeof window !== "undefined" ? window.localStorage.getItem("access_token") : null;
+  const separator = path.includes("?") ? "&" : "?";
+  const authQuery = token ? `${separator}token=${encodeURIComponent(token)}` : "";
+  return `${base}${path.startsWith("/") ? path : `/${path}`}${authQuery}`;
 }
 
 export const WS_PATHS = {
