@@ -1,7 +1,8 @@
-import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   getGetCurrentUserQueryKey,
+  setAuthTokenGetter,
   useGetCurrentUser,
   useLogin,
   useLogout as useLogoutMutation,
@@ -27,6 +28,15 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
+  const getToken = () => localStorage.getItem("access_token");
+
+  useEffect(() => {
+    setAuthTokenGetter(getToken);
+
+    return () => {
+      setAuthTokenGetter(null);
+    };
+  }, []);
   const meQuery = useGetCurrentUser({
     query: { queryKey: getGetCurrentUserQueryKey(), retry: false, refetchOnWindowFocus: false, staleTime: 60_000 },
   });
@@ -45,7 +55,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (payload: UserLogin) => {
       const response = await loginMutation.mutateAsync({ data: payload });
+
+      localStorage.setItem("access_token", response.access_token);
+
       setUser(response.user);
+
       return response.user;
     },
     [loginMutation, setUser],
@@ -54,7 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = useCallback(
     async (payload: UserCreate) => {
       const response = await registerMutation.mutateAsync({ data: payload });
+
+      localStorage.setItem("access_token", response.access_token);
+
       setUser(response.user);
+
       return response.user;
     },
     [registerMutation, setUser],
@@ -73,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await logoutMutation.mutateAsync();
     } finally {
+      localStorage.removeItem("access_token");
       queryClient.clear();
     }
   }, [logoutMutation, queryClient]);
