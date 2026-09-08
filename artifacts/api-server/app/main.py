@@ -38,9 +38,11 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list or ["*"],
-    # Local dev frontends run on an arbitrary/auto-assigned port; allow any
-    # localhost origin in development instead of hardcoding one port.
-    allow_origin_regex=r"^https?://localhost(:\d+)?$" if settings.environment == "development" else None,
+    # Netlify deploy previews and local dev use origins that are not stable
+    # enough to enumerate in the Render environment variables.
+    allow_origin_regex=(
+        r"^https?://localhost(:\d+)?$|^https://[a-z0-9-]+\.netlify\.app$"
+    ),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
