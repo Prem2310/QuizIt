@@ -1,0 +1,448 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card-border: hsl(var(--card-border));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover-border: hsl(var(--popover-border));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-border: var(--primary-border);
+  --color-primary-bright: hsl(var(--primary-bright));
+  --color-primary-muted: hsl(var(--primary-muted));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary-border: var(--secondary-border);
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted-border: var(--muted-border);
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent-border: var(--accent-border);
+
+  --color-highlight: hsl(var(--highlight));
+  --color-highlight-foreground: hsl(var(--highlight-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-border: var(--destructive-border);
+
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+
+  --color-surface: hsl(var(--surface));
+  --color-surface-2: hsl(var(--surface-2));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-primary-border: var(--sidebar-primary-border);
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-accent-border: var(--sidebar-accent-border);
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --font-sans: var(--app-font-sans);
+  --font-display: var(--app-font-display);
+  --font-serif: var(--app-font-serif);
+  --font-mono: var(--app-font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/*
+ * QuizIt runs as a single dark, glass, neon theme (matiks-style) — the same
+ * palette is used whether or not the `.dark` class is present, so the app
+ * always renders in its intended look.
+ */
+:root,
+.dark {
+  --button-outline: rgba(255, 255, 255, 0.1);
+  --badge-outline: rgba(255, 255, 255, 0.05);
+
+  --opaque-button-border-intensity: 9;
+
+  --elevate-1: rgba(255, 255, 255, 0.045);
+  --elevate-2: rgba(255, 255, 255, 0.09);
+
+  --background: 0 0% 5%;
+  --foreground: 0 0% 96%;
+
+  --border: 0 0% 17%;
+
+  --card: 0 0% 8.5%;
+  --card-foreground: 0 0% 96%;
+  --card-border: 0 0% 17%;
+
+  --surface: 0 0% 10%;
+  --surface-2: 0 0% 7%;
+
+  --sidebar: 0 0% 7%;
+  --sidebar-foreground: 0 0% 92%;
+  --sidebar-border: 0 0% 15%;
+  --sidebar-primary: 84 81% 56%;
+  --sidebar-primary-foreground: 0 0% 8%;
+  --sidebar-accent: 0 0% 13%;
+  --sidebar-accent-foreground: 0 0% 96%;
+  --sidebar-ring: 84 81% 56%;
+
+  --popover: 0 0% 9%;
+  --popover-foreground: 0 0% 96%;
+  --popover-border: 0 0% 17%;
+
+  /* Signature neon-lime primary, matiks-style. */
+  --primary: 84 81% 56%;
+  --primary-foreground: 0 0% 9%;
+  --primary-bright: 84 90% 66%;
+  --primary-muted: 84 35% 32%;
+
+  /* Electric cyan secondary accent (opponents, victory gradient, info). */
+  --secondary: 178 78% 50%;
+  --secondary-foreground: 0 0% 9%;
+
+  --muted: 0 0% 13%;
+  --muted-foreground: 0 0% 63%;
+
+  /* Muted hover/focus surface for menu items, ghost buttons, etc. — not a brand color. */
+  --accent: 0 0% 15%;
+  --accent-foreground: 0 0% 96%;
+
+  /* Hot-pink highlight (XP, achievements, streaks) — no purple in the palette. */
+  --highlight: 330 85% 63%;
+  --highlight-foreground: 0 0% 9%;
+
+  --destructive: 6 84% 62%;
+  --destructive-foreground: 0 0% 9%;
+
+  --warning: 38 92% 58%;
+  --warning-foreground: 0 0% 9%;
+
+  --input: 0 0% 19%;
+  --ring: 84 81% 56%;
+  --chart-1: 84 81% 56%;
+  --chart-2: 178 78% 50%;
+  --chart-3: 330 85% 63%;
+  --chart-4: 38 92% 58%;
+  --chart-5: 340 82% 62%;
+
+  --app-font-sans: 'Unbounded', 'Inter', sans-serif;
+  --app-font-display: 'Unbounded', 'Inter', sans-serif;
+  --app-font-serif: Georgia, serif;
+  --app-font-mono: 'JetBrains Mono', Menlo, monospace;
+  --radius: 0.85rem;
+
+  --shadow-2xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.3);
+  --shadow-xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.35);
+  --shadow-sm: 0px 2px 8px -2px hsl(0 0% 0% / 0.4);
+  --shadow: 0px 4px 16px -4px hsl(0 0% 0% / 0.45);
+  --shadow-md: 0px 8px 24px -6px hsl(0 0% 0% / 0.5);
+  --shadow-lg: 0px 12px 32px -8px hsl(0 0% 0% / 0.55);
+  --shadow-xl: 0px 20px 48px -12px hsl(0 0% 0% / 0.6);
+  --shadow-2xl: 0px 28px 64px -16px hsl(0 0% 0% / 0.65);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+
+  --sidebar-primary-border: hsl(
+    from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
+  --sidebar-accent-border: hsl(
+    from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
+  --primary-border: hsl(
+    from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
+  --secondary-border: hsl(
+    from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
+  --muted-border: hsl(
+    from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
+  --accent-border: hsl(
+    from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
+  --destructive-border: hsl(
+    from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% -10%, hsl(var(--primary) / 0.10), transparent 60%),
+      radial-gradient(ellipse 900px 500px at 100% 0%, hsl(var(--secondary) / 0.08), transparent 60%);
+    background-repeat: no-repeat;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.3);
+  }
+}
+
+@layer utilities {
+  input[type='search']::-webkit-search-cancel-button {
+    @apply hidden;
+  }
+
+  [contenteditable][data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+  }
+
+  .no-default-hover-elevate {
+  }
+
+  .no-default-active-elevate {
+  }
+
+  .toggle-elevate::before,
+  .toggle-elevate-2::before {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: 0px;
+    border-radius: inherit;
+    z-index: -1;
+  }
+
+  .toggle-elevate.toggle-elevated::before {
+    background-color: var(--elevate-2);
+  }
+
+  .border.toggle-elevate::before {
+    inset: -1px;
+  }
+
+  .hover-elevate:not(.no-default-hover-elevate),
+  .active-elevate:not(.no-default-active-elevate),
+  .hover-elevate-2:not(.no-default-hover-elevate),
+  .active-elevate-2:not(.no-default-active-elevate) {
+    position: relative;
+    z-index: 0;
+  }
+
+  .hover-elevate:not(.no-default-hover-elevate)::after,
+  .active-elevate:not(.no-default-active-elevate)::after,
+  .hover-elevate-2:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:not(.no-default-active-elevate)::after {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: 0px;
+    border-radius: inherit;
+    z-index: 999;
+  }
+
+  .hover-elevate:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-1);
+  }
+
+  .hover-elevate-2:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-2);
+  }
+
+  .border.hover-elevate:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate:not(.no-active-interaction-elevate)::after,
+  .border.hover-elevate-2:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
+  .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
+    inset: -1px;
+  }
+
+  /* --- QuizIt design system additions --------------------------------- */
+
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .numeric {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+
+  .label-micro {
+    @apply text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground;
+  }
+
+  .surface-panel {
+    @apply rounded-2xl border border-border bg-card/85 shadow-sm backdrop-blur-md;
+  }
+
+  .glass-panel {
+    @apply rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg backdrop-blur-xl;
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.4), 0 8px 28px -6px hsl(var(--primary) / 0.45);
+  }
+
+  .glow-primary-lg {
+    box-shadow: 0 0 60px -12px hsl(var(--primary) / 0.55);
+  }
+
+  .text-gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary-bright)), hsl(var(--secondary)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .shake {
+    animation: quizit-shake 0.4s ease-in-out;
+  }
+
+  @keyframes quizit-shake {
+    10%, 90% { transform: translateX(-1px); }
+    20%, 80% { transform: translateX(2px); }
+    30%, 50%, 70% { transform: translateX(-4px); }
+    40%, 60% { transform: translateX(4px); }
+  }
+
+  @keyframes quizit-pulse-ring {
+    0% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.5); }
+    100% { box-shadow: 0 0 0 14px hsl(var(--primary) / 0); }
+  }
+
+  .pulse-ring {
+    animation: quizit-pulse-ring 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes quizit-pop-in {
+    0% { transform: scale(0.6); opacity: 0; }
+    60% { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+
+  .pop-in {
+    animation: quizit-pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  @keyframes quizit-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  .float-slow {
+    animation: quizit-float 4s ease-in-out infinite;
+  }
+
+  @keyframes quizit-confetti-fall {
+    0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(540deg); opacity: 0.4; }
+  }
+
+  .confetti-piece {
+    position: absolute;
+    top: 0;
+    animation-name: quizit-confetti-fall;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+    animation-iteration-count: 1;
+  }
+
+  .badge-outline-ring {
+    box-shadow: 0 0 0 3px hsl(var(--background)), 0 0 0 4px hsl(var(--border));
+  }
+
+  /* --- IndiaBix math notation ------------------------------------------
+   * IndiaBix marks up fractions/expressions as small tables (numerator cell,
+   * a bordered denominator cell acting as the fraction bar, and image cells
+   * for brackets/root signs) with prefixed class names like `ga-td-divisor`,
+   * `di-td-divident`, etc. These rules match on the stable suffix regardless
+   * of topic prefix, and only apply inside sanitized question/explanation HTML. */
+  .indiabix-html img {
+    display: inline-block;
+    vertical-align: middle;
+    max-height: 1.4em;
+    width: auto;
+  }
+
+  .indiabix-html table[class*="-tbl-answer"] {
+    display: inline-table;
+    vertical-align: middle;
+    border-collapse: collapse;
+    margin: 0.15em 0.3em;
+  }
+
+  .indiabix-html td[class*="-td-divident"] {
+    padding: 0 0.35em 0.15em;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .indiabix-html td[class*="-td-divisor"] {
+    padding: 0.15em 0.35em 0;
+    text-align: center;
+    white-space: nowrap;
+    border-top: 1.5px solid currentColor;
+  }
+
+  .indiabix-html td[class*="-td-line"] {
+    vertical-align: middle;
+    padding: 0 0.1em;
+  }
+
+  .indiabix-html td[class*="-td-line-rpad"],
+  .indiabix-html td[class*="-td-line-lrpad"] {
+    padding: 0 0.3em;
+    white-space: nowrap;
+  }
+
+  /* Whole-number part beside a stacked fraction (e.g. the "3" in 3½) — spans
+   * both the numerator and denominator rows via rowspan, so just center it. */
+  .indiabix-html td[class*="-td-upline"] {
+    vertical-align: middle;
+    padding: 0 0.15em;
+    white-space: nowrap;
+  }
+
+  .indiabix-html i[class*="-var"] {
+    font-style: italic;
+  }
+
+  .indiabix-html p {
+    margin: 0 0 0.5em;
+  }
+
+  .indiabix-html p:last-child {
+    margin-bottom: 0;
+  }
+}

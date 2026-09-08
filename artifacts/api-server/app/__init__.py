@@ -1,0 +1,1 @@
+"""QuizIt FastAPI application."""

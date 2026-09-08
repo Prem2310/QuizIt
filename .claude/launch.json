@@ -1,0 +1,20 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "quizit",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "quizit", "run", "dev"],
+      "port": 3000,
+      "autoPort": true,
+      "env": {
+        "BASE_PATH": "/",
+        "VITE_API_BASE_URL": "http://localhost:8000"
+      }
+    },
+    {
+      "name": "api-server",
+      "url": "http://localhost:8000"
+    }
+  ]
+}

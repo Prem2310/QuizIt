@@ -1,0 +1,973 @@
+openapi: 3.1.0
+info:
+  # Keep this title stable because it controls generated import paths.
+  title: Api
+  version: 1.0.0
+  description: QuizIt competitive aptitude practice API
+servers:
+  - url: /api
+    description: QuizIt API
+tags:
+  - name: health
+  - name: auth
+  - name: catalog
+  - name: quizzes
+  - name: analytics
+  - name: duels
+  - name: friends
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Check API and dependency health
+      responses:
+        "200":
+          description: Health status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Create a QuizIt account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreate"
+      responses:
+        "201":
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Sign in to QuizIt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserLogin"
+      responses:
+        "200":
+          description: Signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Clear the current session
+      responses:
+        "204":
+          description: Session cleared
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Get the signed-in user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    patch:
+      operationId: updateCurrentUser
+      tags: [auth]
+      summary: Update the signed-in user's profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+  /topics:
+    get:
+      operationId: listTopics
+      tags: [catalog]
+      summary: List active aptitude topics
+      responses:
+        "200":
+          description: Topics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Topic"
+  /topics/{topic_id}/subtopics:
+    get:
+      operationId: listSubtopics
+      tags: [catalog]
+      summary: List subtopics in a topic
+      parameters:
+        - $ref: "#/components/parameters/TopicId"
+      responses:
+        "200":
+          description: Subtopics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Subtopic"
+  /questions:
+    get:
+      operationId: listQuestions
+      tags: [catalog]
+      summary: Browse active questions
+      parameters:
+        - name: topic_id
+          in: query
+          schema:
+            type: integer
+        - name: subtopic_id
+          in: query
+          schema:
+            type: integer
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+            enum: [easy, medium, hard]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Questions without answer keys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Question"
+  /questions/{question_id}:
+    get:
+      operationId: getQuestion
+      tags: [catalog]
+      summary: Get one active question
+      parameters:
+        - $ref: "#/components/parameters/QuestionId"
+      responses:
+        "200":
+          description: Question without answer key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Question"
+  /quizzes:
+    post:
+      operationId: createQuiz
+      tags: [quizzes]
+      summary: Create a quiz (random, or weak-topics spaced-repetition review)
+      description: >-
+        If fewer questions exist for the requested scope than num_questions asked for, the
+        quiz is created with however many are actually available instead of failing.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizCreate"
+      responses:
+        "201":
+          description: Quiz created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quiz"
+        "404":
+          description: No questions available for this selection
+  /quizzes/{quiz_id}/start:
+    post:
+      operationId: startQuiz
+      tags: [quizzes]
+      summary: Start a quiz attempt
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/QuizId"
+      responses:
+        "200":
+          description: Started quiz with safe question payloads
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizStart"
+  /quizzes/attempts/{attempt_id}/complete:
+    post:
+      operationId: completeQuiz
+      tags: [quizzes]
+      summary: Grade every answer from a practice session in one call and get the reviewed results
+      description: >-
+        Practice mode collects answers client-side with no network calls in between; this is
+        the single request sent at the end that grades everything and returns per-question
+        explanations for review.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/AttemptId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizCompleteRequest"
+      responses:
+        "200":
+          description: Final score plus a full reviewable breakdown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizComplete"
+  /analytics/me:
+    get:
+      operationId: getMyAnalytics
+      tags: [analytics]
+      summary: Get the signed-in user's summary
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Personal analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsSummary"
+  /analytics/me/history:
+    get:
+      operationId: getMyHistory
+      tags: [analytics]
+      summary: Get recent quiz attempts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: topic_id
+          in: query
+          schema:
+            type: [integer, "null"]
+        - name: mode
+          in: query
+          schema:
+            type: [string, "null"]
+      responses:
+        "200":
+          description: Recent attempts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AttemptSummary"
+  /analytics/me/topics:
+    get:
+      operationId: getMyTopicInsights
+      tags: [analytics]
+      summary: Get accuracy by topic
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: [integer, "null"]
+            minimum: 1
+            maximum: 365
+      responses:
+        "200":
+          description: Topic insights
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopicInsight"
+  /analytics/me/trend:
+    get:
+      operationId: getMyProgressTrend
+      tags: [analytics]
+      summary: Get a daily accuracy trend for the progress chart
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            minimum: 7
+            maximum: 180
+            default: 30
+      responses:
+        "200":
+          description: Daily accuracy points
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProgressTrendPoint"
+  /analytics/leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [analytics]
+      summary: Get the leaderboard (global, the signed-in user's college, or friends)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: scope
+          in: query
+          schema:
+            type: string
+            enum: [global, college, friends]
+            default: global
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Ranked users. The signed-in user is always included, even outside the top N.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaderboardEntry"
+  /duels/{duel_id}:
+    get:
+      operationId: getDuel
+      tags: [duels]
+      summary: Get a duel's final summary (also live via WS /ws/duels/{duel_id})
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/DuelId"
+      responses:
+        "200":
+          description: Duel summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DuelSummary"
+  /duels/challenges:
+    post:
+      operationId: createChallenge
+      tags: [duels]
+      summary: Challenge a specific player to a custom duel (or send a rematch request)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DuelChallengeCreate"
+      responses:
+        "201":
+          description: Challenge sent, awaiting a response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DuelChallengeRead"
+  /duels/challenges/incoming:
+    get:
+      operationId: getIncomingChallenges
+      tags: [duels]
+      summary: List pending challenges sent to me
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Pending incoming challenges
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DuelChallengeRead"
+  /duels/challenges/{challenge_id}:
+    get:
+      operationId: getChallenge
+      tags: [duels]
+      summary: Poll a challenge's status
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ChallengeId"
+      responses:
+        "200":
+          description: Challenge status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DuelChallengeRead"
+  /duels/challenges/{challenge_id}/accept:
+    post:
+      operationId: acceptChallenge
+      tags: [duels]
+      summary: Accept a challenge and create the duel
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ChallengeId"
+      responses:
+        "200":
+          description: Challenge accepted; duel_match_id is ready to connect to over WS
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DuelChallengeRead"
+  /duels/challenges/{challenge_id}/decline:
+    post:
+      operationId: declineChallenge
+      tags: [duels]
+      summary: Decline a challenge
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ChallengeId"
+      responses:
+        "204":
+          description: Declined
+  /duels/challenges/{challenge_id}/cancel:
+    post:
+      operationId: cancelChallenge
+      tags: [duels]
+      summary: Cancel a challenge you sent
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ChallengeId"
+      responses:
+        "204":
+          description: Cancelled
+  /friends:
+    get:
+      operationId: listFriends
+      tags: [friends]
+      summary: List my friends
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Friends
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserSummary"
+  /friends/search:
+    get:
+      operationId: searchUsers
+      tags: [friends]
+      summary: Search users by username to add as a friend
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 60
+      responses:
+        "200":
+          description: Matching users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserSummary"
+  /friends/requests:
+    get:
+      operationId: getIncomingFriendRequests
+      tags: [friends]
+      summary: List pending friend requests sent to me
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Pending requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FriendRequestRead"
+  /friends/requests/{username}:
+    post:
+      operationId: sendFriendRequest
+      tags: [friends]
+      summary: Send a friend request by username
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Username"
+      responses:
+        "201":
+          description: Request sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendRequestRead"
+  /friends/requests/{request_id}/accept:
+    post:
+      operationId: acceptFriendRequest
+      tags: [friends]
+      summary: Accept a friend request
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        "200":
+          description: Now friends
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendRequestRead"
+  /friends/requests/{request_id}/decline:
+    post:
+      operationId: declineFriendRequest
+      tags: [friends]
+      summary: Decline a friend request
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        "204":
+          description: Declined
+  /friends/{friend_user_id}:
+    delete:
+      operationId: removeFriend
+      tags: [friends]
+      summary: Remove a friend
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/FriendUserId"
+      responses:
+        "204":
+          description: Removed
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    TopicId:
+      name: topic_id
+      in: path
+      required: true
+      schema:
+        type: integer
+    QuestionId:
+      name: question_id
+      in: path
+      required: true
+      schema:
+        type: string
+    QuizId:
+      name: quiz_id
+      in: path
+      required: true
+      schema:
+        type: integer
+    AttemptId:
+      name: attempt_id
+      in: path
+      required: true
+      schema:
+        type: integer
+    DuelId:
+      name: duel_id
+      in: path
+      required: true
+      schema:
+        type: integer
+    ChallengeId:
+      name: challenge_id
+      in: path
+      required: true
+      schema:
+        type: integer
+    RequestId:
+      name: request_id
+      in: path
+      required: true
+      schema:
+        type: integer
+    Username:
+      name: username
+      in: path
+      required: true
+      schema:
+        type: string
+    FriendUserId:
+      name: friend_user_id
+      in: path
+      required: true
+      schema:
+        type: integer
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status, database, redis]
+      properties:
+        status: { type: string }
+        database: { type: string }
+        redis: { type: string }
+    User:
+      type: object
+      required:
+        [
+          id, name, email, username, total_points, total_correct, total_incorrect,
+          user_rating, matches_played, current_streak, max_streak, total_xp, best_rating, league,
+        ]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string, format: email }
+        username: { type: string }
+        college_name: { type: [string, "null"] }
+        profile_picture_url: { type: [string, "null"] }
+        total_points: { type: integer }
+        total_correct: { type: integer }
+        total_incorrect: { type: integer }
+        rank: { type: [integer, "null"] }
+        user_rating: { type: number }
+        matches_played: { type: integer }
+        current_streak: { type: integer }
+        max_streak: { type: integer }
+        total_xp: { type: integer }
+        best_rating: { type: number }
+        league: { type: string }
+    UserCreate:
+      type: object
+      required: [name, email, username, password]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 120 }
+        email: { type: string, format: email }
+        username: { type: string, minLength: 3, maxLength: 40 }
+        password: { type: string, minLength: 8, maxLength: 128 }
+        college_name: { type: [string, "null"] }
+    UserLogin:
+      type: object
+      required: [email_or_username, password]
+      properties:
+        email_or_username: { type: string }
+        password: { type: string }
+    UserUpdate:
+      type: object
+      properties:
+        name: { type: [string, "null"], minLength: 2, maxLength: 120 }
+        username: { type: [string, "null"], minLength: 3, maxLength: 40 }
+        college_name: { type: [string, "null"], maxLength: 180 }
+        profile_picture_url: { type: [string, "null"], maxLength: 500 }
+    Topic:
+      type: object
+      required: [id, name, slug]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: [string, "null"] }
+    Subtopic:
+      type: object
+      required: [id, topic_id, name, slug]
+      properties:
+        id: { type: integer }
+        topic_id: { type: integer }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: [string, "null"] }
+    Question:
+      type: object
+      required: [id, subtopic_id, text, options]
+      properties:
+        id: { type: string }
+        subtopic_id: { type: integer }
+        text: { type: string }
+        text_html: { type: [string, "null"] }
+        options: {}
+        options_html: {}
+        answer_letter: { type: [string, "null"] }
+        explanation: { type: [string, "null"] }
+        explanation_html: { type: [string, "null"] }
+        difficulty: { type: [string, "null"] }
+    AuthResponse:
+      type: object
+      required: [access_token, token_type, user]
+      properties:
+        access_token: { type: string }
+        token_type: { type: string, enum: [bearer] }
+        user:
+          $ref: "#/components/schemas/User"
+    QuizCreate:
+      type: object
+      properties:
+        topic_id: { type: [integer, "null"] }
+        subtopic_id: { type: [integer, "null"] }
+        num_questions: { type: integer, minimum: 1, maximum: 100, default: 10 }
+        time_per_question: { type: integer, minimum: 5, maximum: 300, default: 30 }
+        quiz_mode:
+          type: string
+          enum: [practice, weak_topics, personalized, challenge, duel]
+          default: practice
+    Quiz:
+      type: object
+      required: [id, quiz_mode, question_ids]
+      properties:
+        id: { type: integer }
+        room_id: { type: [string, "null"] }
+        topic_id: { type: [integer, "null"] }
+        time_per_question: { type: [integer, "null"] }
+        num_questions: { type: [integer, "null"] }
+        quiz_mode: { type: string }
+        question_ids:
+          type: array
+          items: { type: string }
+    QuizStart:
+      type: object
+      required: [attempt_id, quiz, questions]
+      properties:
+        attempt_id: { type: integer }
+        quiz:
+          $ref: "#/components/schemas/Quiz"
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Question"
+    ResponseInput:
+      type: object
+      required: [question_id]
+      properties:
+        question_id: { type: string }
+        selected_answer: { type: [string, "null"] }
+        time_taken: { type: [integer, "null"], minimum: 0, maximum: 3600 }
+    QuizCompleteRequest:
+      type: object
+      properties:
+        responses:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResponseInput"
+    QuestionReview:
+      type: object
+      required: [question_id, text, options, selected_answer, correct_answer, is_correct]
+      properties:
+        question_id: { type: string }
+        text: { type: string }
+        text_html: { type: [string, "null"] }
+        options: {}
+        options_html: {}
+        selected_answer: { type: [string, "null"] }
+        correct_answer: { type: [string, "null"] }
+        is_correct: { type: boolean }
+        explanation: { type: [string, "null"] }
+        explanation_html: { type: [string, "null"] }
+    QuizComplete:
+      type: object
+      required: [attempt_id, score, total_correct, total_incorrect, accuracy]
+      properties:
+        attempt_id: { type: integer }
+        score: { type: integer }
+        total_correct: { type: integer }
+        total_incorrect: { type: integer }
+        total_questions: { type: integer, default: 0 }
+        accuracy: { type: number }
+        xp_gained: { type: integer, default: 0 }
+        review:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuestionReview"
+    AnalyticsSummary:
+      type: object
+      required:
+        [
+          total_points, total_correct, total_incorrect, accuracy, matches_played, rating,
+          current_streak, max_streak, total_xp, league, due_for_review,
+        ]
+      properties:
+        total_points: { type: integer }
+        total_correct: { type: integer }
+        total_incorrect: { type: integer }
+        accuracy: { type: number }
+        matches_played: { type: integer }
+        rating: { type: number }
+        rank: { type: [integer, "null"] }
+        recommended_topic: { type: [string, "null"] }
+        current_streak: { type: integer }
+        max_streak: { type: integer }
+        total_xp: { type: integer }
+        league: { type: string }
+        due_for_review: { type: integer }
+    AttemptSummary:
+      type: object
+      required: [attempt_id, quiz_id, quiz_mode, score, total_correct, total_incorrect, accuracy, completed_at]
+      properties:
+        attempt_id: { type: integer }
+        quiz_id: { type: integer }
+        quiz_mode: { type: string }
+        score: { type: integer }
+        total_correct: { type: integer }
+        total_incorrect: { type: integer }
+        accuracy: { type: number }
+        completed_at: { type: [string, "null"], format: date-time }
+    TopicInsight:
+      type: object
+      required: [topic_id, topic_name, total_answered, correct, accuracy]
+      properties:
+        topic_id: { type: integer }
+        topic_name: { type: string }
+        total_answered: { type: integer }
+        correct: { type: integer }
+        accuracy: { type: number }
+    ProgressTrendPoint:
+      type: object
+      required: [date, attempts, correct, incorrect, accuracy]
+      properties:
+        date: { type: string, format: date }
+        attempts: { type: integer }
+        correct: { type: integer }
+        incorrect: { type: integer }
+        accuracy: { type: number }
+    LeaderboardEntry:
+      type: object
+      required: [rank, user_id, username, name, total_points, user_rating, league]
+      properties:
+        rank: { type: integer }
+        user_id: { type: integer }
+        username: { type: string }
+        name: { type: string }
+        college_name: { type: [string, "null"] }
+        total_points: { type: integer }
+        user_rating: { type: number }
+        league: { type: string }
+        is_me: { type: boolean, default: false }
+    DuelOpponent:
+      type: object
+      required: [user_id, username, name, rating, league]
+      properties:
+        user_id: { type: integer }
+        username: { type: string }
+        name: { type: string }
+        rating: { type: number }
+        league: { type: string }
+    DuelSummary:
+      type: object
+      required:
+        [
+          id, status, quiz_history_id, player1, player2, player1_score, player2_score,
+          player1_rating_before, player2_rating_before,
+        ]
+      properties:
+        id: { type: integer }
+        status: { type: string }
+        quiz_history_id: { type: integer }
+        room_id: { type: [string, "null"] }
+        topic_id: { type: [integer, "null"] }
+        player1:
+          $ref: "#/components/schemas/DuelOpponent"
+        player2:
+          $ref: "#/components/schemas/DuelOpponent"
+        player1_score: { type: integer }
+        player2_score: { type: integer }
+        winner_id: { type: [integer, "null"] }
+        player1_rating_before: { type: number }
+        player2_rating_before: { type: number }
+        player1_rating_after: { type: [number, "null"] }
+        player2_rating_after: { type: [number, "null"] }
+        started_at: { type: [string, "null"], format: date-time }
+        completed_at: { type: [string, "null"], format: date-time }
+    DuelChallengeCreate:
+      type: object
+      required: [opponent_id]
+      properties:
+        opponent_id: { type: integer }
+        topic_id: { type: [integer, "null"] }
+        num_questions: { type: integer, minimum: 1, maximum: 50, default: 10 }
+        time_per_question: { type: integer, minimum: 5, maximum: 120, default: 15 }
+    DuelChallengeRead:
+      type: object
+      required: [id, status, challenger, opponent, num_questions, time_per_question, created_at, expires_at]
+      properties:
+        id: { type: integer }
+        status: { type: string, enum: [pending, accepted, declined, cancelled, expired] }
+        challenger:
+          $ref: "#/components/schemas/DuelOpponent"
+        opponent:
+          $ref: "#/components/schemas/DuelOpponent"
+        topic_id: { type: [integer, "null"] }
+        topic_name: { type: [string, "null"] }
+        num_questions: { type: integer }
+        time_per_question: { type: integer }
+        duel_match_id: { type: [integer, "null"] }
+        created_at: { type: string, format: date-time }
+        expires_at: { type: string, format: date-time }
+    UserSummary:
+      type: object
+      required: [user_id, username, name, rating, league]
+      properties:
+        user_id: { type: integer }
+        username: { type: string }
+        name: { type: string }
+        college_name: { type: [string, "null"] }
+        rating: { type: number }
+        league: { type: string }
+        friend_status:
+          type: string
+          enum: [none, friends, pending_outgoing, pending_incoming, self]
+          default: none
+    FriendRequestRead:
+      type: object
+      required: [id, status, requester, addressee, created_at]
+      properties:
+        id: { type: integer }
+        status: { type: string, enum: [pending, accepted, declined] }
+        requester:
+          $ref: "#/components/schemas/DuelOpponent"
+        addressee:
+          $ref: "#/components/schemas/DuelOpponent"
+        created_at: { type: string, format: date-time }

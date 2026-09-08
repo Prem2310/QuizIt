@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "QuizIt"
+description = "A competitive aptitude practice platform where learners improve through personalized quizzes, progress insights, leaderboards, and real-time challenges."
+version = "1.0.0"
+id = "artifacts/quizit"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19693
+
+[services.development]
+run = "pnpm --filter @workspace/quizit run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/quizit", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/quizit/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19693"
+BASE_PATH = "/"
